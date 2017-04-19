@@ -7,28 +7,35 @@ using System.Threading;
 
 namespace IP_Refresher
 {
-    class Program
+    internal static class Program
     {
-        static void Main(string[] args)
+        //Environment.SetEnvironmentVariable("OVH_ENDPOINT", "ovh-eu");
+        //Environment.SetEnvironmentVariable("OVH_APPLICATION_KEY", "J1MXVC7BkTJzoTi4");
+        //Environment.SetEnvironmentVariable("OVH_APPLICATION_SECRET", "q3DUZlTvv0Eag01dML1LLo7KapYAj7rQ");
+        //Environment.SetEnvironmentVariable("OVH_CONSUMER_KEY", "s1SL3ItS4noJTfWKo8gmRpb9wwVAi6VR");
+        private static OvhApiClient Api { get; set; }
+
+        private static void Main(string[] args)
         {
             while(true)
             {
                 //Check 8.8.8.8 or 8.8.4.4
-                var isInternetUp = checkIPUp(@"8.8.8.8");
+                var isInternetUp = CheckIpUp(@"8.8.8.8");
                 if (!isInternetUp)
                 {
-                    isInternetUp = checkIPUp(@"8.8.4.4");
+                    isInternetUp = CheckIpUp(@"8.8.4.4");
                 }
                 if (isInternetUp)
                 {
+                    InitApi();
                     //Get current ip address
-                    var currentIP = callRemoteAPI("https://api.ipify.org");
+                    var currentIp = CallRemoteApi("https://api.ipify.org");
                     //Get OVH ip address
-                    var ovhIP = callOVHAsync().Result;
+                    var ovhIp = CallOvhAsync().Result;
                     //if different, update.
-                    if (currentIP != ovhIP)
+                    if (currentIp != ovhIp)
                     {
-                        postOVHAsync(currentIP);
+                        PostOvhAsync(currentIp);
                     }
                     Console.Read();
                 }
@@ -36,47 +43,44 @@ namespace IP_Refresher
             }
         }
 
-        private static Boolean checkIPUp(String ipAddress)
+        private static bool CheckIpUp(string ipAddress)
         {
-            bool isPingable = false;
-            Ping pinger = new Ping();
+            var isPingable = false;
+            var pinger = new Ping();
             try
             {
-                PingReply reply = pinger.Send(ipAddress);
-                isPingable = reply.Status == IPStatus.Success;
+                var reply = pinger.Send(ipAddress);
+                if (reply != null) isPingable = reply.Status == IPStatus.Success;
             }
             catch (PingException)
             {
-
+                //Ignore exceptio and return false
             }
             return isPingable;
         }
 
-        private static String callRemoteAPI(String url)
+        private static string CallRemoteApi(string url)
         {
-            WebClient client = new WebClient();
+            var client = new WebClient();
             return client.DownloadString(new Uri(url));
         }
 
-        private static async Task<string> callOVHAsync()
+        private static async Task<string> CallOvhAsync()
         {
-
-            //Environment.SetEnvironmentVariable("OVH_ENDPOINT", "ovh-eu");
-            //Environment.SetEnvironmentVariable("OVH_APPLICATION_KEY", "J1MXVC7BkTJzoTi4");
-            //Environment.SetEnvironmentVariable("OVH_APPLICATION_SECRET", "q3DUZlTvv0Eag01dML1LLo7KapYAj7rQ");
-            //Environment.SetEnvironmentVariable("OVH_CONSUMER_KEY", "s1SL3ItS4noJTfWKo8gmRpb9wwVAi6VR");
-            OvhApiClient api = new OvhApiClient("J1MXVC7BkTJzoTi4", "q3DUZlTvv0Eag01dML1LLo7KapYAj7rQ", OvhInfra.Europe, "s1SL3ItS4noJTfWKo8gmRpb9wwVAi6VR");
-            OvhApi.Models.Domain.Zone.Record r = await api.GetDomainZoneRecord("legagladio.it", 1445634879);
+            var r = await Api.GetDomainZoneRecord(@"legagladio.it", 1445634879);
             return r.Target;
         }
 
-
-        private static async void postOVHAsync(string currentIP)
+        private static async void PostOvhAsync(string currentIp)
         {
-            OvhApiClient api = new OvhApiClient("J1MXVC7BkTJzoTi4", "q3DUZlTvv0Eag01dML1LLo7KapYAj7rQ", OvhInfra.Europe, "s1SL3ItS4noJTfWKo8gmRpb9wwVAi6VR");
-            OvhApi.Models.Domain.Zone.Record r = await api.GetDomainZoneRecord("legagladio.it", 1445634879);
-            r.Target = currentIP;
-            await api.UpdateDomainZoneRecord(r, "legagladio.it", 1445634879);
+            var r = await Api.GetDomainZoneRecord(@"legagladio.it", 1445634879);
+            r.Target = currentIp;
+            await Api.UpdateDomainZoneRecord(r, @"legagladio.it", 1445634879);
+        }
+
+        private static void InitApi()
+        {
+            if (Api == null) Api = new OvhApiClient(@"J1MXVC7BkTJzoTi4", @"q3DUZlTvv0Eag01dML1LLo7KapYAj7rQ", OvhInfra.Europe, @"s1SL3ItS4noJTfWKo8gmRpb9wwVAi6VR");
         }
     }
 }
