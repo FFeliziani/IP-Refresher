@@ -73,10 +73,10 @@ namespace IP_Refresher
 
         private static async void postOVHAsync(string currentIP)
         {
-            OvhApiClient api = new OvhApiClient("J1MXVC7BkTJzoTi4", "q3DUZlTvv0Eag01dML1LLo7KapYAj7rQ", OvhInfra.Europe, "s1SL3ItS4noJTfWKo8gmRpb9wwVAi6VR");
-            OvhApi.Models.Domain.Zone.Record r = await api.GetDomainZoneRecord("legagladio.it", 1445634879);
+            var api = new OvhApiClient("J1MXVC7BkTJzoTi4", "q3DUZlTvv0Eag01dML1LLo7KapYAj7rQ", OvhInfra.Europe, "s1SL3ItS4noJTfWKo8gmRpb9wwVAi6VR");
+            var r =  await api.GetDomainZoneRecord("legagladio.it", 1445634879);
             r.Target = currentIP;
-            await api.UpdateDomainZoneRecord(r, "legagladio.it", 1445634879);
+            api.UpdateDomainZoneRecord(r, "legagladio.it", 1445634879);
         }
     }
 }

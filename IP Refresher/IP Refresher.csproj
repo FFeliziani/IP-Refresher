@@ -42,7 +42,8 @@
       <HintPath>..\packages\Newtonsoft.Json.8.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="ovhapicil, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\OVHApi.1.1.0.0\lib\net45\ovhapicil.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\ovhapicil.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
